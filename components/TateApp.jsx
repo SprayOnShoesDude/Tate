@@ -193,7 +193,19 @@ function ScrollProgressBar({ color, containerRef }) {
   );
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
+
 export default function TateApp() {
+  const isMobile = useIsMobile();
   const [darkMode, setDarkMode] = useState(false);
   const C = darkMode ? DARK : LIGHT;
   const w = (a) => darkMode ? `rgba(255,255,255,${a * 0.06})` : `rgba(255,255,255,${a})`;
@@ -355,6 +367,8 @@ export default function TateApp() {
       transition: "background 0.4s ease, color 0.4s ease",
       position: "relative",
       overflow: "hidden",
+      maxWidth: isMobile ? 420 : "none",
+      margin: isMobile ? "0 auto" : "0",
     }}>
       {/* Background gradient */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, background: C.bg, pointerEvents: "none", transition: "background 0.4s ease" }} />
@@ -364,8 +378,36 @@ export default function TateApp() {
       <Cloud dark={darkMode} style={{ width: 240, height: 100, top: 120, right: -60, animationDelay: "2s", animationDuration: "10s", zIndex: 0 }} />
       <Cloud dark={darkMode} style={{ width: 180, height: 80, bottom: 200, left: "30%", animationDelay: "4s", animationDuration: "7s", zIndex: 0 }} />
 
-      {/* ─── SIDEBAR NAV (desktop) ─── */}
-      {!isReading && (
+      {/* ─── MOBILE TOP HEADER ─── */}
+      {isMobile && !isReading && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.headerBg, backdropFilter: "blur(24px)", borderBottom: `1px solid ${C.cardBorder}`, padding: "14px 20px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "background 0.4s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <svg width="32" height="32" viewBox="0 0 36 36" fill="none" style={{ filter: "drop-shadow(0 2px 6px rgba(123,184,212,0.4))", flexShrink: 0 }}>
+              <rect width="36" height="36" rx="10" fill="url(#tgm)" />
+              <path d="M8 10 Q8 9 9 9 L17 10.5 L17 26 L9 24.5 Q8 24.5 8 23.5 Z" fill="rgba(255,255,255,0.9)" />
+              <path d="M19 10.5 L27 9 Q28 9 28 10 L28 23.5 Q28 24.5 27 24.5 L19 26 Z" fill="rgba(255,255,255,0.75)" />
+              <line x1="18" y1="10" x2="18" y2="26" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
+              <line x1="10" y1="29" x2="26" y2="29" stroke="rgba(255,255,255,0.95)" strokeWidth="2" strokeLinecap="round" />
+              <line x1="24" y1="27" x2="26" y2="29" stroke="rgba(255,255,255,0.95)" strokeWidth="2" strokeLinecap="round" />
+              <defs><linearGradient id="tgm" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#a8d4e8" /><stop offset="100%" stopColor="#b0b8e8" /></linearGradient></defs>
+            </svg>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontWeight: 400, fontSize: 22, color: C.accentDeep, letterSpacing: "0.06em" }}>tate.</span>
+          </div>
+          <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 10, color: C.textFaint, letterSpacing: "0.1em", fontWeight: 600 }}>INK</div>
+              <div style={{ fontSize: 13, color: C.gold, fontWeight: 600 }}>{ink.toLocaleString()}</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 10, color: C.textFaint, letterSpacing: "0.1em", fontWeight: 600 }}>STREAK</div>
+              <div style={{ fontSize: 13, color: C.accentDeep, fontWeight: 600 }}>☁️ {streak}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── DESKTOP SIDEBAR NAV ─── */}
+      {!isMobile && !isReading && (
         <div style={{
           position: "fixed", left: 0, top: 0, bottom: 0, zIndex: 100,
           width: 220,
@@ -442,17 +484,17 @@ export default function TateApp() {
 
       {/* ─── MAIN CONTENT ─── */}
       <div style={{
-        marginLeft: isReading ? 0 : 220,
+        marginLeft: isReading ? 0 : (isMobile ? 0 : 220),
         flex: 1, zIndex: 1, position: "relative",
         minHeight: "100vh",
         overflowX: "hidden",
       }}>
         {/* ── HOME ── */}
         {tab === "home" && (
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 32px", animation: "fadeUp 0.4s ease" }}>
+          <div style={{ maxWidth: isMobile ? "100%" : 1100, margin: "0 auto", padding: isMobile ? "16px 16px 84px" : "32px 32px", animation: "fadeUp 0.4s ease" }}>
             <div style={{ fontSize: 11, color: C.textFaint, letterSpacing: "0.16em", fontWeight: 600, marginBottom: 24 }}>GOOD MORNING · MARCH 2026</div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 28 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 14 : 20, marginBottom: 28 }}>
               {/* Now Reading card */}
               <div style={{ ...card({ borderRadius: 24, padding: "28px", background: darkMode ? "linear-gradient(135deg, #0d1a24, #141e2a)" : activeBook.bg, boxShadow: "0 8px 32px rgba(123,184,212,0.2)", gridColumn: "1" }), position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: -30, right: -30, width: 180, height: 180, borderRadius: "50%", background: darkMode ? "rgba(90,154,184,0.06)" : "rgba(255,255,255,0.5)", filter: "blur(40px)" }} />
@@ -478,7 +520,7 @@ export default function TateApp() {
               </div>
 
               {/* Quick stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 14 }}>
                 {[
                   { label: "Books Read", value: "47", icon: "📖", color: C.accentDeep },
                   { label: "Pages This Week", value: "342", icon: "🌿", color: "#8dbfa0" },
@@ -519,7 +561,7 @@ export default function TateApp() {
 
         {/* ── BOOKS (Library) ── */}
         {tab === "books" && !activeBook.reading && (
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 32px", animation: "fadeUp 0.4s ease" }}>
+          <div style={{ maxWidth: isMobile ? "100%" : 1100, margin: "0 auto", padding: isMobile ? "16px 16px 84px" : "32px 32px", animation: "fadeUp 0.4s ease" }}>
             <div style={{ fontSize: 11, color: C.textFaint, letterSpacing: "0.16em", fontWeight: 600, marginBottom: 24 }}>YOUR COLLECTION</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
               {books.map((book, i) => (
@@ -711,7 +753,7 @@ export default function TateApp() {
 
         {/* ── AUDIO PLAYER ── */}
         {tab === "books" && activeBook.reading === "listen" && (
-          <div style={{ maxWidth: 600, margin: "0 auto", padding: "32px 32px", animation: "fadeUp 0.35s ease" }}>
+          <div style={{ maxWidth: isMobile ? "100%" : 600, margin: "0 auto", padding: isMobile ? "16px 16px 84px" : "32px 32px", animation: "fadeUp 0.35s ease" }}>
             <button onClick={() => setActiveBook(b => ({ ...b, reading: null }))} style={{ background: w(0.75), border: "1px solid rgba(123,184,212,0.25)", borderRadius: 10, padding: "7px 16px", color: C.textSoft, cursor: "pointer", fontSize: 14, fontFamily: "'Nunito', sans-serif", marginBottom: 24 }}>← Library</button>
             <div style={{ ...card({ borderRadius: 28, padding: "40px 32px", background: activeBook.bg, textAlign: "center" }), position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: -20, right: -20, width: 160, height: 160, borderRadius: "50%", background: w(0.4), filter: "blur(32px)" }} />
@@ -741,7 +783,7 @@ export default function TateApp() {
 
         {/* ── DISCOVER / MARKETPLACE ── */}
         {tab === "discover" && (
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 32px", animation: "fadeUp 0.4s ease" }}>
+          <div style={{ maxWidth: isMobile ? "100%" : 1100, margin: "0 auto", padding: isMobile ? "16px 16px 84px" : "32px 32px", animation: "fadeUp 0.4s ease" }}>
 
             {/* Search bar + cart */}
             <div style={{ display: "flex", gap: 12, marginBottom: 24, position: "relative" }}>
@@ -977,9 +1019,9 @@ export default function TateApp() {
 
         {/* ── SOCIAL ── */}
         {tab === "social" && (
-          <div style={{ maxWidth: 800, margin: "0 auto", padding: "32px 32px", animation: "fadeUp 0.4s ease" }}>
+          <div style={{ maxWidth: isMobile ? "100%" : 800, margin: "0 auto", padding: isMobile ? "16px 16px 84px" : "32px 32px", animation: "fadeUp 0.4s ease" }}>
             <div style={{ fontSize: 11, color: C.textFaint, letterSpacing: "0.14em", fontWeight: 600, marginBottom: 22 }}>PAGES & FEELINGS</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 28 }}>
               {reviews.map((r, i) => (
                 <div key={i} style={{ ...card({ borderRadius: 20, padding: "20px" }), animation: `fadeUp 0.4s ease ${i * 0.1}s both` }}>
                   <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -1071,7 +1113,7 @@ export default function TateApp() {
 
         {/* ── PROFILE ── */}
         {tab === "profile" && (
-          <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 32px", animation: "fadeUp 0.4s ease" }}>
+          <div style={{ maxWidth: isMobile ? "100%" : 900, margin: "0 auto", padding: isMobile ? "16px 16px 84px" : "32px 32px", animation: "fadeUp 0.4s ease" }}>
             {/* Profile header */}
             <div style={{ ...card({ borderRadius: 24, padding: "32px", background: darkMode ? "linear-gradient(160deg, #0e1a26, #1a1628, #1e1a14)" : "linear-gradient(160deg, #c5dff0, #ddd0f0, #f0dfc5)", marginBottom: 20, position: "relative", overflow: "hidden" }) }}>
               <Cloud dark={darkMode} style={{ width: 220, height: 90, top: 10, right: -30, animationDuration: "9s" }} />
@@ -1104,7 +1146,7 @@ export default function TateApp() {
 
             {/* Stats */}
             {profileTab === "stats" && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 18 }}>
                 {/* Ink + Streak */}
                 <div style={{ ...card({ borderRadius: 18, padding: "22px", background: darkMode ? "linear-gradient(135deg, rgba(212,168,75,0.1), rgba(20,32,44,0.9))" : "linear-gradient(135deg, rgba(212,168,75,0.12), rgba(255,255,255,0.7))" }) }}>
                   <div style={{ fontSize: 28, marginBottom: 6 }}>🌊</div>
@@ -1165,7 +1207,7 @@ export default function TateApp() {
 
             {/* Settings */}
             {profileTab === "settings" && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 18 }}>
                 <div style={{ ...card({ borderRadius: 18, padding: "24px" }) }}>
                   <div style={{ fontSize: 11, color: C.textFaint, letterSpacing: "0.12em", fontWeight: 600, marginBottom: 18 }}>APPEARANCE</div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
@@ -1202,6 +1244,31 @@ export default function TateApp() {
           </div>
         )}
       </div>
+
+      {/* ─── MOBILE BOTTOM NAV ─── */}
+      {isMobile && !isReading && (
+        <div style={{
+          position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+          width: "100%", maxWidth: 420,
+          background: C.navBg, backdropFilter: "blur(24px)",
+          borderTop: `1px solid ${C.cardBorder}`,
+          display: "flex", padding: "10px 0 16px", zIndex: 100,
+          boxShadow: "0 -4px 24px rgba(123,184,212,0.1)",
+          transition: "background 0.4s ease",
+        }}>
+          {navItems.map(({ id, icon, label }) => (
+            <button key={id} onClick={() => setTab(id)} style={{
+              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+              background: "none", border: "none", cursor: "pointer",
+              color: tab === id ? C.accentDeep : C.textFaint, transition: "color 0.2s",
+            }}>
+              <span style={{ fontSize: 19 }}>{icon}</span>
+              <span style={{ fontSize: 10, fontFamily: "'Nunito', sans-serif", fontWeight: tab === id ? 600 : 400, letterSpacing: "0.04em" }}>{label}</span>
+              {tab === id && <div style={{ width: 4, height: 4, borderRadius: "50%", background: C.accentDeep, marginTop: 1 }} />}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
